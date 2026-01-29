@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honorários - Contec</title>
+    <link rel="shortcut icon" href="logo.png" type="image/png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d47a1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <style>
+        /* VISUAL CONTEC */
+        :root { --contec-blue: #0d47a1; --contec-hover: #063175; --whatsapp: #25D366; }
+        body { background-color: #f4f6f9; font-family: 'Roboto', sans-serif; padding-bottom: 80px; /* Espaço para o botão flutuante */ }
+        
+        .header-contec { background-color: var(--contec-blue); color: white; padding: 12px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-contec { background-color: var(--contec-blue); color: white; border: none; font-weight: 500; }
+        .btn-contec:hover { background-color: var(--contec-hover); color: white; }
+        
+        .btn-contec-outline { 
+            border: 2px solid var(--contec-blue); color: var(--contec-blue); font-weight: 700; background: white; transition: all 0.2s;
+        }
+        .btn-contec-outline:hover { background-color: var(--contec-blue); color: white; }
+
+        .card-cliente { cursor: pointer; border-left: 5px solid var(--contec-blue); transition: all 0.2s; }
+        .card-cliente:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* Adicione isso junto com os outros estilos */
+        .borda-azul-contec {
+            border-color: var(--contec-blue) !important;
+        }
+
+        /* STATUS */
+        .status-pendente { border-left: 5px solid #dc3545; background-color: #fff; }
+        .status-pago { border-left: 5px solid #198754; background-color: #f8f9fa; opacity: 0.8; }
+        .texto-pago { text-decoration: line-through; color: #6c757d; }
+        
+        .btn-voltar-login { position: absolute; top: 20px; left: 20px; color: rgba(255,255,255,0.7); text-decoration: none; z-index: 10; transition: all 0.3s;}
+        .btn-voltar-login:hover { color: white; transform: translateX(-3px); }
+        
+        .lista-meses { border-radius: 8px; overflow: hidden; }
+        .item-mes { border-bottom: 1px solid #eee; padding: 12px; }
+        .item-mes:last-child { border-bottom: none; }
+
+        .btn-acao-card { border: none; background: transparent; color: #adb5bd; transition: all 0.2s; }
+        .btn-acao-card:hover { color: var(--contec-blue); transform: scale(1.1); }
+        .btn-acao-card.delete:hover { color: #dc3545; }
+
+        .logo-header { height: 55px; width: auto; margin-right: 10px; vertical-align: middle; }
+
+        /* CHECKBOX GRANDE PARA FACILITAR O TOQUE */
+        .check-cobranca { transform: scale(1.3); margin-top: 5px; cursor: pointer; border-color: #dc3545; }
+        .check-cobranca:checked { background-color: #dc3545; border-color: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <div id="telaLogin" style="height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--contec-blue) 0%, #002171 100%); position: relative;">
+        <a href="https://monicathayanne.github.io/portal-contec/" class="btn-voltar-login"><i class="bi bi-arrow-left me-1"></i> Voltar ao Portal</a>
+        <div class="card p-4 shadow-lg border-0" style="width: 100%; max-width: 400px; border-radius: 12px;">
+            <div class="text-center mb-4">
+                <img src="logo.png" style="max-height: 80px;" onerror="this.style.display='none'">
+                <h5 class="mt-3 fw-bold text-secondary">Controle de Honorários</h5>
+            </div>
+            <form id="formLogin">
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control" id="emailLogin" placeholder="E-mail" required>
+                    <label>E-mail</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="password" class="form-control" id="senhaLogin" placeholder="Senha" required>
+                    <label>Senha</label>
+                </div>
+                <div class="d-grid gap-2 mb-3">
+                    <button type="submit" class="btn btn-contec btn-lg py-3 shadow-sm">ACESSAR SISTEMA</button>
+                </div>
+                <div class="d-flex justify-content-between small px-2">
+                    <a href="#" onclick="recuperarSenha()" class="text-decoration-none text-muted">Esqueci a senha</a>
+                    <a href="#" onclick="abrirModalAdmin()" class="text-decoration-none fw-bold" style="color: var(--contec-blue);">Criar conta</a>
+                </div>
+                <div id="msgLogin" class="mt-3 text-center text-danger small fw-bold"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="appSistema" class="d-none">
+        <header class="header-contec sticky-top">
+            <div class="container px-3">
+                <div class="row align-items-center">
+                    <div class="col-2">
+                        <a href="https://monicathayanne.github.io/portal-contec/" class="text-white text-decoration-none fw-bold" style="font-size: 1.2rem;">
+                            <i class="bi bi-arrow-left"></i>
+                        </a>
+                    </div>
+                    <div class="col-8 text-center">
+                        <img src="logo.png" class="logo-header" onerror="this.style.display='none'">
+                        <span class="fw-bold align-middle fs-5">HONORÁRIOS</span>
+                    </div>
+                    <div class="col-2 text-end">
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-outline-light border-0 p-1" onclick="baixarBackup()" title="Backup Excel">
+                                <i class="bi bi-cloud-download-fill fs-4"></i>
+                            </button>
+                            <button class="btn btn-outline-warning border-0 p-1" onclick="fazerLogout()" title="Sair">
+                                <i class="bi bi-box-arrow-right fs-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container mt-4 mb-5">
+            <div id="telaClientes">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-secondary m-0">Meus Clientes</h5>
+                    <button class="btn btn-contec px-3 py-2 shadow-sm" onclick="modalNovoCliente()">
+                        <i class="bi bi-plus-lg me-1"></i> Novo
+                    </button>
+                </div>
+                <input type="text" id="buscaCliente" class="form-control mb-3 shadow-sm p-3" placeholder="🔍 Buscar cliente..." onkeyup="filtrarClientes()">
+                <div id="listaClientes" class="row g-3"></div>
+            </div>
+
+            <div id="telaDetalhes" class="d-none">
+                <button class="btn btn-light mb-3 border shadow-sm px-3" onclick="voltarParaClientes()">
+                    <i class="bi bi-arrow-left me-1"></i> Voltar
+                </button>
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body border-start border-5 borda-azul-contec">
+                        <h4 class="fw-bold mb-0" style="color: var(--contec-blue);" id="detalheNome">Nome da Empresa</h4>
+                        <div class="text-muted small mt-1 mb-2">
+                            <span id="detalheCnpj" class="badge bg-light text-dark border"></span>
+                        </div>
+                        <div class="text-muted small">
+                            <i class="bi bi-calendar-event"></i> Vence dia: <span id="detalheDia"></span> | 
+                            <i class="bi bi-coin"></i> Valor Mensal: R$ <span id="detalheValor"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 mb-4">
+                    <button class="btn btn-contec-outline py-2" onclick="modalGerarAno()">
+                        <i class="bi bi-calendar-plus me-2"></i> Gerar Carnê do Ano (Janeiro-Dezembro)
+                    </button>
+                </div>
+                
+                <h6 class="text-muted fw-bold ms-1">
+                    HISTÓRICO DE MENSALIDADES
+                    <small class="fw-normal fst-italic float-end" style="font-size: 0.7rem;">Selecione para cobrar em lote</small>
+                </h6>
+                <div id="listaMensalidades" class="lista-meses shadow-sm bg-white"></div>
+            </div>
+        </div>
+
+        <div id="fabCobranca" class="d-none position-fixed bottom-0 start-50 translate-middle-x mb-4" style="z-index: 1050; width: 90%; max-width: 400px;">
+            <button class="btn btn-success w-100 shadow-lg py-3 fw-bold rounded-pill" onclick="enviarCobrancaLote()">
+                <i class="bi bi-whatsapp me-2 fs-5"></i> COBRAR (<span id="fabQtd">0</span>) - R$ <span id="fabTotal">0,00</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAdminCheck" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="mb-3"><div class="bg-light rounded-circle d-inline-flex p-3"><i class="bi bi-shield-lock-fill text-warning fs-1"></i></div></div>
+                <h5 class="fw-bold text-secondary mb-2">Acesso Restrito</h5>
+                <p class="small text-muted mb-3">Digite a senha mestra.</p>
+                <input type="password" id="inputSenhaAdmin" class="form-control text-center mb-2" placeholder="••••••••" onkeydown="if(event.key==='Enter') verificarSenhaMestra()">
+                <div id="msgErroAdmin" class="small text-danger fw-bold mb-3" style="display: none;">Senha incorreta!</div>
+                <button class="btn btn-contec w-100 fw-bold" onclick="verificarSenhaMestra()">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCliente" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title fw-bold" id="tituloModalCliente">Novo Cliente</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="formCliente" onsubmit="return false;">
+                        <input type="hidden" id="idClienteEdicao">
+                        <div class="mb-3"><label class="small fw-bold text-muted">NOME / RAZÃO SOCIAL</label><input type="text" id="inputNome" class="form-control text-uppercase" required></div>
+                        <div class="mb-3"><label class="small fw-bold text-muted">CPF / CNPJ</label><input type="text" id="inputCnpj" class="form-control" placeholder="00.000.000/0000-00" oninput="mascaraCpfCnpj(this)" maxlength="18"></div>
+                        <div class="row g-2">
+                            <div class="col-6"><label class="small fw-bold text-muted">DIA VENCIMENTO</label><input type="number" id="inputDia" class="form-control" placeholder="Ex: 10" required></div>
+                            <div class="col-6"><label class="small fw-bold text-muted">VALOR MENSAL (R$)</label><input type="text" id="inputValor" class="form-control" oninput="mascaraMoeda(this)" required></div>
+                        </div>
+                        <div class="mt-3"><label class="small fw-bold text-muted">TELEFONE (ZAP)</label><input type="text" id="inputTel" class="form-control" placeholder="(00) 00000-0000"></div>
+                        <button type="button" class="btn btn-contec w-100 mt-4 fw-bold py-3" onclick="salvarCliente()">SALVAR DADOS</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalExcluirCliente" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="mb-3"><div class="bg-light rounded-circle d-inline-flex p-3"><i class="bi bi-trash-fill text-danger fs-1"></i></div></div>
+                <h5 class="fw-bold text-dark mb-2">Tem certeza?</h5>
+                <p class="small text-muted mb-4">Você vai apagar este cliente e todo o histórico.</p>
+                <input type="hidden" id="idExclusao">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-danger fw-bold" onclick="confirmarExclusaoCliente()">SIM, APAGAR</button>
+                    <button class="btn btn-light btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalBaixa" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-light"><h6 class="modal-title fw-bold">Confirmar Pagamento</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="baixaId">
+                    <p class="text-center text-muted small mb-3" id="baixaTitulo">Referente a Janeiro/2026</p>
+                    <div class="mb-3"><label class="small fw-bold text-success">DATA DO PAGAMENTO</label><input type="date" id="baixaData" class="form-control border-success"></div>
+                    <div class="mb-3"><label class="small fw-bold text-primary">VALOR RECEBIDO (R$)</label><input type="text" id="baixaValor" class="form-control fw-bold text-primary fs-5 text-center" oninput="mascaraMoeda(this)"><small class="text-muted" style="font-size: 0.75rem;">*Edite se houve juros ou desconto.</small></div>
+                    <button class="btn btn-success w-100 fw-bold py-2" onclick="confirmarBaixa()">CONFIRMAR RECEBIMENTO</button>
+                    <button class="btn btn-outline-danger w-100 mt-2 btn-sm" onclick="estornarBaixa()">Estornar (Marcar como Pendente)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').then(() => console.log('App pronto!')); }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, query, where, getDoc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHC-2agiX0NQipY4_ZseNTFw2sssvls7o",
+            authDomain: "controleparcelamentos.firebaseapp.com",
+            projectId: "controleparcelamentos",
+            storageBucket: "controleparcelamentos.firebasestorage.app",
+            messagingSenderId: "77230598136",
+            appId: "1:77230598136:web:cf641d6106ff8c9ec0180d",
+            measurementId: "G-VC0XMSGFF2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let USER = null;
+        let CLIENTE_ATUAL = null;
+        let UNSUBSCRIBE_CLIENTES = null;
+        const SENHA_MESTRA = "Contec1801@";
+
+        // LOGIN
+        onAuthStateChanged(auth, (user) => {
+            if(user){
+                USER = user;
+                document.getElementById('telaLogin').classList.add('d-none');
+                document.getElementById('appSistema').classList.remove('d-none');
+                iniciarEscutaClientes();
+            } else {
+                USER = null;
+                document.getElementById('telaLogin').classList.remove('d-none');
+                document.getElementById('appSistema').classList.add('d-none');
+                if(UNSUBSCRIBE_CLIENTES) UNSUBSCRIBE_CLIENTES();
+            }
+        });
+
+        document.getElementById('formLogin').addEventListener('submit', (e) => {
+            e.preventDefault();
+            signInWithEmailAndPassword(auth, document.getElementById('emailLogin').value, document.getElementById('senhaLogin').value)
+            .catch(err => document.getElementById('msgLogin').innerText = "Erro: " + err.message);
+        });
+
+        window.fazerLogout = () => signOut(auth);
+
+        // ADMIN
+        window.abrirModalAdmin = () => {
+            document.getElementById("inputSenhaAdmin").value = "";
+            document.getElementById("msgErroAdmin").style.display = "none";
+            new bootstrap.Modal(document.getElementById('modalAdminCheck')).show();
+            setTimeout(() => document.getElementById("inputSenhaAdmin").focus(), 500);
+        };
+
+        window.verificarSenhaMestra = async () => {
+            if (document.getElementById("inputSenhaAdmin").value === SENHA_MESTRA) {
+                bootstrap.Modal.getInstance(document.getElementById('modalAdminCheck')).hide();
+                const email = document.getElementById("emailLogin").value;
+                const senha = document.getElementById("senhaLogin").value;
+                if(!email || !senha) {
+                    const msg = document.getElementById("msgLogin");
+                    msg.innerText = "⚠️ Autorizado! Preencha E-mail e Senha e clique em Criar Conta novamente.";
+                    msg.className = "mt-3 text-center text-warning fw-bold small";
+                    return;
+                }
+                try {
+                    await createUserWithEmailAndPassword(auth, email, senha);
+                    alert("✅ Conta criada com sucesso!");
+                } catch (error) { alert("Erro: " + error.message); }
+            } else {
+                document.getElementById("msgErroAdmin").style.display = "block";
+            }
+        };
+
+        window.recuperarSenha = async () => {
+            const email = document.getElementById("emailLogin").value;
+            if(!email) return alert("Digite seu e-mail no campo acima.");
+            try { await sendPasswordResetEmail(auth, email); alert("E-mail enviado!"); } catch (e) { alert("Erro: " + e.message); }
+        };
+
+        // CLIENTES
+        function iniciarEscutaClientes() {
+            if(!USER) return;
+            const q = query(collection(db, "clientes_honorarios"), where("dono", "==", USER.uid));
+            UNSUBSCRIBE_CLIENTES = onSnapshot(q, (snap) => {
+                const div = document.getElementById('listaClientes');
+                div.innerHTML = "";
+                if (snap.empty) { div.innerHTML = "<div class='text-center text-muted p-4'>Nenhum cliente cadastrado.</div>"; return; }
+                let lista = [];
+                snap.forEach(d => lista.push({id: d.id, ...d.data()}));
+                lista.sort((a, b) => a.nome.localeCompare(b.nome));
+                lista.forEach(c => {
+                    const json = JSON.stringify(c).replace(/"/g, '&quot;');
+                    div.innerHTML += `
+                        <div class="col-md-6 item-cliente-lista"> 
+                            <div class="card card-cliente border-0 shadow-sm h-100" onclick="abrirDetalhes('${c.id}')">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="fw-bold text-uppercase mb-1" style="color: var(--contec-blue)">${c.nome}</h6>
+                                        <div class="small text-muted"><span class="d-block text-truncate" style="max-width: 150px;">${c.cnpj || ""}</span><span>Dia ${c.diaVencimento} • R$ ${parseFloat(c.valorMensal).toLocaleString('pt-br', {minimumFractionDigits: 2})}</span></div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn-acao-card" onclick="event.stopPropagation(); preparingEdicao('${json}')"><i class="bi bi-pencil-fill"></i></button>
+                                        <button class="btn-acao-card delete" onclick="event.stopPropagation(); prepararExclusao('${c.id}')"><i class="bi bi-trash-fill"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        window.modalNovoCliente = () => {
+            document.getElementById('formCliente').reset();
+            document.getElementById('idClienteEdicao').value = "";
+            document.getElementById('tituloModalCliente').innerText = "Novo Cliente";
+            new bootstrap.Modal(document.getElementById('modalCliente')).show();
+        };
+
+        window.preparingEdicao = (json) => {
+            const c = JSON.parse(json);
+            document.getElementById('idClienteEdicao').value = c.id;
+            document.getElementById('inputNome').value = c.nome;
+            document.getElementById('inputCnpj').value = c.cnpj || "";
+            document.getElementById('inputDia').value = c.diaVencimento;
+            document.getElementById('inputValor').value = parseFloat(c.valorMensal).toLocaleString('pt-br', {minimumFractionDigits: 2});
+            document.getElementById('inputTel').value = c.telefone || "";
+            document.getElementById('tituloModalCliente').innerText = "Editar Cliente";
+            new bootstrap.Modal(document.getElementById('modalCliente')).show();
+        };
+
+        window.salvarCliente = async () => {
+            if(!USER) { alert("Sessão expirou."); return; }
+            const id = document.getElementById('idClienteEdicao').value;
+            const nome = document.getElementById('inputNome').value;
+            const val = parseFloat(document.getElementById('inputValor').value.replace('R$', '').trim().replaceAll('.', '').replace(',', '.'));
+            if(!nome || isNaN(val)) { alert("Verifique os dados."); return; }
+            const dados = {
+                dono: USER.uid, nome: nome.toUpperCase(), cnpj: document.getElementById('inputCnpj').value,
+                diaVencimento: parseInt(document.getElementById('inputDia').value), valorMensal: val, telefone: document.getElementById('inputTel').value
+            };
+            try {
+                if(id) await updateDoc(doc(db, "clientes_honorarios", id), dados);
+                else await addDoc(collection(db, "clientes_honorarios"), dados);
+                bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
+            } catch (e) { alert("Erro: " + e.message); }
+        };
+
+        window.prepararExclusao = (id) => {
+            document.getElementById('idExclusao').value = id;
+            new bootstrap.Modal(document.getElementById('modalExcluirCliente')).show();
+        };
+        window.confirmarExclusaoCliente = async () => {
+            try { await deleteDoc(doc(db, "clientes_honorarios", document.getElementById('idExclusao').value)); bootstrap.Modal.getInstance(document.getElementById('modalExcluirCliente')).hide(); } catch(e){ alert("Erro: "+e.message); }
+        };
+
+        // DETALHES, COBRANÇA EM LOTE E FATURAS
+        window.abrirDetalhes = async (id) => {
+            const docSnap = await getDoc(doc(db, "clientes_honorarios", id));
+            if(!docSnap.exists()) return;
+            CLIENTE_ATUAL = {id: docSnap.id, ...docSnap.data()};
+            document.getElementById('detalheNome').innerText = CLIENTE_ATUAL.nome;
+            document.getElementById('detalheCnpj').innerText = CLIENTE_ATUAL.cnpj || "";
+            document.getElementById('detalheDia').innerText = CLIENTE_ATUAL.diaVencimento;
+            document.getElementById('detalheValor').innerText = parseFloat(CLIENTE_ATUAL.valorMensal).toLocaleString('pt-br', {minimumFractionDigits: 2});
+            document.getElementById('telaClientes').classList.add('d-none');
+            document.getElementById('telaDetalhes').classList.remove('d-none');
+            // Esconde botão flutuante ao abrir
+            document.getElementById('fabCobranca').classList.add('d-none');
+            iniciarEscutaFaturas(id);
+        };
+
+        window.voltarParaClientes = () => {
+            document.getElementById('telaClientes').classList.remove('d-none');
+            document.getElementById('telaDetalhes').classList.add('d-none');
+            document.getElementById('fabCobranca').classList.add('d-none'); // Garante que some
+            CLIENTE_ATUAL = null;
+        };
+
+        function iniciarEscutaFaturas(clienteId){
+            const q = query(collection(db, "faturas_honorarios"), where("clienteId", "==", clienteId));
+            onSnapshot(q, (snap) => {
+                const div = document.getElementById('listaMensalidades');
+                div.innerHTML = "";
+                if(snap.empty) { div.innerHTML = "<div class='p-4 text-center text-muted'>Nenhuma fatura.<br>Clique em 'Gerar Carnê'.</div>"; return; }
+                
+                let lista = [];
+                snap.forEach(d => lista.push({id: d.id, ...d.data()}));
+                lista.sort((a, b) => a.dataVencimento.localeCompare(b.dataVencimento));
+                
+                lista.forEach(f => {
+                    const venc = f.dataVencimento.split('-'); 
+                    const dataBr = `${venc[2]}/${venc[1]}/${venc[0]}`;
+                    const valorFmt = parseFloat(f.valor).toLocaleString('pt-br', {minimumFractionDigits: 2});
+                    
+                    let htmlCheck = '';
+                    let classeStatus = f.pago ? "status-pago" : "status-pendente";
+                    let textoStatus = f.pago ? `<span class="badge bg-success">PAGO EM ${f.dataPagamentoFormatada}</span>` : `<span class="badge bg-danger">PENDENTE</span>`;
+                    let estiloTexto = f.pago ? "texto-pago" : "text-dark fw-bold";
+                    const msgZap = `Olá ${CLIENTE_ATUAL.nome}, honorários ref. ${f.mesReferencia} (Venc: ${dataBr}) no valor de R$ ${valorFmt} estão em aberto. Gentileza regularizar.`;
+                    const linkZap = `https://wa.me/55${(CLIENTE_ATUAL.telefone || "").replace(/\D/g,'')}?text=${encodeURIComponent(msgZap)}`;
+
+                    // Checkbox SÓ aparece se estiver pendente
+                    if(!f.pago) {
+                        htmlCheck = `<div class="me-3"><input class="form-check-input check-cobranca" type="checkbox" data-mes="${f.mesReferencia}" data-valor="${f.valor}" onchange="atualizarBotaoCobranca()"></div>`;
+                    }
+
+                    div.innerHTML += `
+                        <div class="item-mes d-flex align-items-center ${classeStatus}">
+                            ${htmlCheck}
+                            <div style="cursor: pointer; flex-grow: 1;" onclick="abrirBaixa('${f.id}', '${f.mesReferencia}', ${f.valor}, '${f.dataPagamento || ''}')">
+                                <div class="small text-muted fw-bold text-uppercase">${f.mesReferencia}</div>
+                                <div class="${estiloTexto}">R$ ${valorFmt}</div>
+                                <small class="text-muted" style="font-size: 0.75rem">Vence: ${dataBr}</small>
+                                <div class="mt-1">${textoStatus}</div>
+                            </div>
+                            <div>
+                                <a href="${linkZap}" target="_blank" class="btn btn-sm text-white rounded-circle shadow-sm" style="background-color: var(--whatsapp)"><i class="bi bi-whatsapp"></i></a>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // LÓGICA DE COBRANÇA EM LOTE
+        window.atualizarBotaoCobranca = () => {
+            const checks = document.querySelectorAll('.check-cobranca:checked');
+            const fab = document.getElementById('fabCobranca');
+            
+            if(checks.length > 0) {
+                fab.classList.remove('d-none');
+                let total = 0;
+                checks.forEach(c => total += parseFloat(c.getAttribute('data-valor')));
+                document.getElementById('fabQtd').innerText = checks.length;
+                document.getElementById('fabTotal').innerText = total.toLocaleString('pt-br', {minimumFractionDigits: 2});
+            } else {
+                fab.classList.add('d-none');
+            }
+        };
+
+        window.enviarCobrancaLote = () => {
+            const checks = document.querySelectorAll('.check-cobranca:checked');
+            let meses = [];
+            let total = 0;
+            
+            checks.forEach(c => {
+                meses.push(c.getAttribute('data-mes'));
+                total += parseFloat(c.getAttribute('data-valor'));
+            });
+
+            const totalFmt = total.toLocaleString('pt-br', {minimumFractionDigits: 2});
+            const listaMeses = meses.join(', ');
+            
+            // Frase solicitada
+            const msg = `Olá ${CLIENTE_ATUAL.nome}, honorários referentes a: ${listaMeses} estão em atraso.\nTotal: R$ ${totalFmt}.\nGentileza regularizar.`;
+            
+            const link = `https://wa.me/55${(CLIENTE_ATUAL.telefone || "").replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+            window.open(link, '_blank');
+        };
+
+        window.modalGerarAno = async () => {
+            if(!confirm(`Gerar mensalidades de Jan a Dez para ${CLIENTE_ATUAL.nome}?`)) return;
+            const ano = prompt("Digite o Ano:", "2026");
+            if(!ano) return;
+            const promises = [];
+            for(let i=0; i<12; i++){
+                let mes = i+1; let mesStr = mes < 10 ? `0${mes}` : mes;
+                let dataVenc = `${ano}-${mesStr}-${CLIENTE_ATUAL.diaVencimento.toString().padStart(2, '0')}`;
+                promises.push(addDoc(collection(db, "faturas_honorarios"), {
+                    clienteId: CLIENTE_ATUAL.id, mesReferencia: `${mesStr}/${ano}`, dataVencimento: dataVenc, valor: CLIENTE_ATUAL.valorMensal, pago: false, dono: USER.uid
+                }));
+            }
+            await Promise.all(promises);
+        };
+
+        window.abrirBaixa = (id, ref, valor, dataPag) => {
+            document.getElementById('baixaId').value = id;
+            document.getElementById('baixaTitulo').innerText = `Referência: ${ref}`;
+            document.getElementById('baixaData').value = dataPag || new Date().toISOString().split('T')[0];
+            const inputVal = document.getElementById('baixaValor');
+            inputVal.value = parseFloat(valor).toLocaleString('pt-br', {minimumFractionDigits: 2});
+            mascaraMoeda(inputVal); 
+            new bootstrap.Modal(document.getElementById('modalBaixa')).show();
+        };
+
+        window.confirmarBaixa = async () => {
+            const id = document.getElementById('baixaId').value;
+            const dataPag = document.getElementById('baixaData').value;
+            const partes = dataPag.split('-');
+            const dataPagFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            const valorFinal = parseFloat(document.getElementById('baixaValor').value.replace('.','').replace(',','.'));
+            await updateDoc(doc(db, "faturas_honorarios", id), { pago: true, dataPagamento: dataPag, dataPagamentoFormatada: dataPagFormatada, valor: valorFinal });
+            bootstrap.Modal.getInstance(document.getElementById('modalBaixa')).hide();
+        };
+
+        window.estornarBaixa = async () => {
+             if(!confirm("Remover pagamento e deixar como pendente?")) return;
+             const id = document.getElementById('baixaId').value;
+             await updateDoc(doc(db, "faturas_honorarios", id), { pago: false, dataPagamento: null, dataPagamentoFormatada: null });
+             bootstrap.Modal.getInstance(document.getElementById('modalBaixa')).hide();
+        }
+
+        window.baixarBackup = async () => {
+            if(!confirm("Deseja baixar o backup de Clientes e Honorários em CSV?")) return;
+            const qC = query(collection(db, "clientes_honorarios"), where("dono", "==", USER.uid));
+            const qF = query(collection(db, "faturas_honorarios"), where("dono", "==", USER.uid));
+            const [snapC, snapF] = await Promise.all([getDocs(qC), getDocs(qF)]);
+            let csv = "TIPO;NOME;CNPJ;VENCIMENTO;REFERENCIA;VALOR;STATUS;DATA_PAGAMENTO\n";
+            const clientesMap = {};
+            snapC.forEach(d => { const c = d.data(); clientesMap[d.id] = c.nome; csv += `CLIENTE;${c.nome};${c.cnpj || ''};${c.diaVencimento};-;${c.valorMensal};ATIVO;-\n`; });
+            snapF.forEach(d => { const f = d.data(); const nomeCliente = clientesMap[f.clienteId] || "Desconhecido"; const status = f.pago ? "PAGO" : "PENDENTE"; csv += `FATURA;${nomeCliente};-;${f.dataVencimento};${f.mesReferencia};${f.valor};${status};${f.dataPagamento || '-'}\n`; });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `backup_honorarios_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+        };
+
+        window.mascaraMoeda = (i) => {
+            var v = i.value.replace(/\D/g,''); v = (v/100).toFixed(2) + ''; v = v.replace(".", ","); v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); i.value = v;
+        };
+        window.mascaraCpfCnpj = (i) => {
+            var v = i.value.replace(/\D/g, "");
+            if (v.length <= 11) { v = v.replace(/(\d{3})(\d)/, "$1.$2"); v = v.replace(/(\d{3})(\d)/, "$1.$2"); v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); } 
+            else { v = v.replace(/^(\d{2})(\d)/, "$1.$2"); v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3"); v = v.replace(/\.(\d{3})(\d)/, ".$1/$2"); v = v.replace(/(\d{4})(\d)/, "$1-$2"); }
+            i.value = v;
+        };
+        window.filtrarClientes = () => {
+            let termo = document.getElementById('buscaCliente').value.toUpperCase();
+            let items = document.getElementsByClassName('item-cliente-lista');
+            for(let item of items){ let texto = item.innerText.toUpperCase(); item.style.display = texto.includes(termo) ? "block" : "none"; }
+        }
+    </script>
+</body>
+</html>
