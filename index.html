@@ -13,14 +13,21 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0d47a1">
+    <meta name="theme-color" content="#063175">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <style>
         /* VISUAL CONTEC */
-        :root { --contec-blue: #0d47a1; --contec-hover: #063175; --whatsapp: #25D366; }
-        body { background-color: #f4f6f9; font-family: 'Roboto', sans-serif; padding-bottom: 80px; /* Espaço para o botão flutuante */ }
+        :root { 
+            --contec-blue: #063175; 
+            --contec-hover: #04204d; 
+            --whatsapp: #25D366; 
+        }
+        
+        body { background-color: #f4f6f9; font-family: 'Roboto', sans-serif; padding-bottom: 80px; }
+        
+        .text-contec { color: var(--contec-blue) !important; }
         
         .header-contec { background-color: var(--contec-blue); color: white; padding: 12px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .btn-contec { background-color: var(--contec-blue); color: white; border: none; font-weight: 500; }
@@ -34,10 +41,7 @@
         .card-cliente { cursor: pointer; border-left: 5px solid var(--contec-blue); transition: all 0.2s; }
         .card-cliente:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
-        /* Adicione isso junto com os outros estilos */
-        .borda-azul-contec {
-            border-color: var(--contec-blue) !important;
-        }
+        .borda-azul-contec { border-color: var(--contec-blue) !important; }
 
         /* STATUS */
         .status-pendente { border-left: 5px solid #dc3545; background-color: #fff; }
@@ -47,7 +51,6 @@
         .btn-voltar-login { position: absolute; top: 20px; left: 20px; color: rgba(255,255,255,0.7); text-decoration: none; z-index: 10; transition: all 0.3s;}
         .btn-voltar-login:hover { color: white; transform: translateX(-3px); }
         
-        .lista-meses { border-radius: 8px; overflow: hidden; }
         .item-mes { border-bottom: 1px solid #eee; padding: 12px; }
         .item-mes:last-child { border-bottom: none; }
 
@@ -57,14 +60,24 @@
 
         .logo-header { height: 55px; width: auto; margin-right: 10px; vertical-align: middle; }
 
-        /* CHECKBOX GRANDE PARA FACILITAR O TOQUE */
         .check-cobranca { transform: scale(1.3); margin-top: 5px; cursor: pointer; border-color: #dc3545; }
         .check-cobranca:checked { background-color: #dc3545; border-color: #dc3545; }
+
+        .accordion-button:not(.collapsed) { color: var(--contec-blue); background-color: rgba(6, 49, 117, 0.1); font-weight: bold; }
+        .accordion-button:focus { box-shadow: none; border-color: rgba(0,0,0,.125); }
+
+        /* DASHBOARD CARDS */
+        .card-dash { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; color: white; }
+        .card-dash:hover { transform: translateY(-5px); }
+        .bg-dash-blue { background: linear-gradient(45deg, #063175, #0a4ebd); }
+        .bg-dash-green { background: linear-gradient(45deg, #198754, #28a745); }
+        .bg-dash-yellow { background: linear-gradient(45deg, #ffc107, #ffca2c); color: #333; }
+        .bg-dash-red { background: linear-gradient(45deg, #dc3545, #e35d6a); }
     </style>
 </head>
 <body>
 
-    <div id="telaLogin" style="height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--contec-blue) 0%, #002171 100%); position: relative;">
+    <div id="telaLogin" style="height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--contec-blue) 0%, #001040 100%); position: relative;">
         <a href="https://monicathayanne.github.io/portal-contec/" class="btn-voltar-login"><i class="bi bi-arrow-left me-1"></i> Voltar ao Portal</a>
         <div class="card p-4 shadow-lg border-0" style="width: 100%; max-width: 400px; border-radius: 12px;">
             <div class="text-center mb-4">
@@ -101,13 +114,16 @@
                             <i class="bi bi-arrow-left"></i>
                         </a>
                     </div>
-                    <div class="col-8 text-center">
+                    <div class="col-6 text-center">
                         <img src="logo.png" class="logo-header" onerror="this.style.display='none'">
                         <span class="fw-bold align-middle fs-5">HONORÁRIOS</span>
                     </div>
-                    <div class="col-2 text-end">
+                    <div class="col-4 text-end">
                         <div class="d-flex justify-content-end gap-2">
-                            <button class="btn btn-outline-light border-0 p-1" onclick="baixarBackup()" title="Backup Excel">
+                            <button class="btn btn-outline-light border-0 p-1" onclick="alternarDashboard()" title="Dashboard">
+                                <i class="bi bi-bar-chart-fill fs-4"></i>
+                            </button>
+                            <button class="btn btn-outline-light border-0 p-1" onclick="abrirModalBackup()" title="Backup Excel">
                                 <i class="bi bi-cloud-download-fill fs-4"></i>
                             </button>
                             <button class="btn btn-outline-warning border-0 p-1" onclick="fazerLogout()" title="Sair">
@@ -120,6 +136,39 @@
         </header>
 
         <div class="container mt-4 mb-5">
+            
+            <div id="telaDashboard" class="d-none animate__animated animate__fadeIn">
+                <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-speedometer2 me-2"></i>Visão Geral</h5>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="card card-dash bg-dash-blue h-100 p-3">
+                            <div class="fs-1 fw-bold" id="dashQtdClientes">0</div>
+                            <div class="small opacity-75">Clientes Ativos</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card card-dash bg-dash-red h-100 p-3">
+                            <div class="small opacity-75 mb-1">EM ATRASO (GERAL)</div>
+                            <div class="fs-5 fw-bold">R$ <span id="dashTotalAtraso">0,00</span></div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card card-dash bg-white text-dark border shadow-sm p-3">
+                            <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">RESUMO DO MÊS ATUAL</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div><i class="bi bi-hourglass-split text-warning me-2"></i>A Receber</div>
+                                <div class="fw-bold">R$ <span id="dashMesAberta">0,00</span></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div><i class="bi bi-check-circle-fill text-success me-2"></i>Recebido</div>
+                                <div class="fw-bold text-success">R$ <span id="dashMesPago">0,00</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-contec-outline w-100 mt-4" onclick="alternarDashboard()">Voltar para Lista</button>
+            </div>
+
             <div id="telaClientes">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-secondary m-0">Meus Clientes</h5>
@@ -135,6 +184,7 @@
                 <button class="btn btn-light mb-3 border shadow-sm px-3" onclick="voltarParaClientes()">
                     <i class="bi bi-arrow-left me-1"></i> Voltar
                 </button>
+                
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-body border-start border-5 borda-azul-contec">
                         <h4 class="fw-bold mb-0" style="color: var(--contec-blue);" id="detalheNome">Nome da Empresa</h4>
@@ -147,17 +197,22 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="d-grid gap-2 mb-4">
-                    <button class="btn btn-contec-outline py-2" onclick="modalGerarAno()">
-                        <i class="bi bi-calendar-plus me-2"></i> Gerar Carnê do Ano (Janeiro-Dezembro)
+                    <button class="btn btn-contec-outline py-2" onclick="prepararGeracaoCarne()">
+                        <i class="bi bi-calendar-plus me-2"></i> Gerar Carnê do Ano (Jan-Dez)
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="prepararExclusaoCarne()">
+                        <i class="bi bi-trash"></i> Limpar Todo Histórico
                     </button>
                 </div>
                 
-                <h6 class="text-muted fw-bold ms-1">
+                <h6 class="text-muted fw-bold ms-1 mb-2">
                     HISTÓRICO DE MENSALIDADES
                     <small class="fw-normal fst-italic float-end" style="font-size: 0.7rem;">Selecione para cobrar em lote</small>
                 </h6>
-                <div id="listaMensalidades" class="lista-meses shadow-sm bg-white"></div>
+                
+                <div class="accordion shadow-sm" id="accordionAnos"></div>
             </div>
         </div>
 
@@ -165,6 +220,50 @@
             <button class="btn btn-success w-100 shadow-lg py-3 fw-bold rounded-pill" onclick="enviarCobrancaLote()">
                 <i class="bi bi-whatsapp me-2 fs-5"></i> COBRAR (<span id="fabQtd">0</span>) - R$ <span id="fabTotal">0,00</span>
             </button>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAviso" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="mb-3"><i class="bi bi-info-circle-fill" style="font-size: 2rem; color: var(--contec-blue);"></i></div>
+                <h5 class="fw-bold text-dark mb-2">Atenção</h5>
+                <p class="small text-muted mb-3" id="textoAviso">Mensagem aqui</p>
+                <button class="btn btn-contec w-100 fw-bold" data-bs-dismiss="modal">OK, ENTENDI</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalBackup" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="mb-3">
+                    <div class="bg-light rounded-circle d-inline-flex p-3">
+                        <i class="bi bi-cloud-download-fill text-success fs-1"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Baixar Relatório?</h5>
+                <p class="small text-muted mb-3">Isso irá gerar um arquivo Excel (.csv) detalhado com todos os clientes e faturas.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success fw-bold" onclick="executarDownloadBackup()">SIM, BAIXAR</button>
+                    <button class="btn btn-light btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalGerarCarne" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="mb-3"><div class="bg-light rounded-circle d-inline-flex p-3"><i class="bi bi-calendar-check-fill fs-1" style="color: var(--contec-blue);"></i></div></div>
+                <h5 class="fw-bold text-dark mb-2">Gerar Carnê</h5>
+                <p class="small text-muted mb-3">Digite o ano para gerar as mensalidades (Competência Dez/Ano Anterior a Nov/Ano Atual).</p>
+                <input type="number" id="inputAnoCarne" class="form-control text-center mb-3 fs-5 fw-bold" placeholder="2026" value="2026">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-contec fw-bold" onclick="confirmarGeracaoAno()">GERAR AGORA</button>
+                    <button class="btn btn-light btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -177,6 +276,55 @@
                 <input type="password" id="inputSenhaAdmin" class="form-control text-center mb-2" placeholder="••••••••" onkeydown="if(event.key==='Enter') verificarSenhaMestra()">
                 <div id="msgErroAdmin" class="small text-danger fw-bold mb-3" style="display: none;">Senha incorreta!</div>
                 <button class="btn btn-contec w-100 fw-bold" onclick="verificarSenhaMestra()">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalExcluirCliente" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="mb-3"><div class="bg-light rounded-circle d-inline-flex p-3"><i class="bi bi-trash-fill text-danger fs-1"></i></div></div>
+                <h5 class="fw-bold text-dark mb-2">Excluir Cliente?</h5>
+                <p class="small text-muted mb-3">Ação irreversível. Digite a senha.</p>
+                <input type="password" id="senhaExclusaoCliente" class="form-control text-center mb-2" placeholder="Senha 1234" onkeydown="if(event.key==='Enter') confirmarExclusaoCliente()">
+                <div id="msgErroExclCli" class="small text-danger fw-bold mb-3 d-none">Senha incorreta!</div>
+                <input type="hidden" id="idExclusao">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-danger fw-bold" onclick="confirmarExclusaoCliente()">CONFIRMAR EXCLUSÃO</button>
+                    <button class="btn btn-light btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalExcluirCarne" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="mb-3"><div class="bg-light rounded-circle d-inline-flex p-3"><i class="bi bi-eraser-fill text-danger fs-1"></i></div></div>
+                <h5 class="fw-bold text-dark mb-2">Limpar Histórico?</h5>
+                <p class="small text-muted mb-3">Apagar <b>TODAS</b> as mensalidades deste cliente. Digite a senha.</p>
+                <input type="password" id="senhaExclusaoCarne" class="form-control text-center mb-2" placeholder="Senha 1234" onkeydown="if(event.key==='Enter') confirmarExclusaoCarne()">
+                <div id="msgErroExclCarne" class="small text-danger fw-bold mb-3 d-none">Senha incorreta!</div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-danger fw-bold" onclick="confirmarExclusaoCarne()">APAGAR TUDO</button>
+                    <button class="btn btn-light btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalExcluirAno" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="mb-3"><div class="bg-light rounded-circle d-inline-flex p-3"><i class="bi bi-calendar-x-fill text-danger fs-1"></i></div></div>
+                <h5 class="fw-bold text-dark mb-2">Excluir <span id="spanAnoExclusao"></span>?</h5>
+                <p class="small text-muted mb-3">Apagar todas as faturas deste ano. Digite a senha.</p>
+                <input type="password" id="senhaExclusaoAno" class="form-control text-center mb-2" placeholder="Senha 1234" onkeydown="if(event.key==='Enter') confirmarExclusaoAno()">
+                <div id="msgErroExclAno" class="small text-danger fw-bold mb-3 d-none">Senha incorreta!</div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-danger fw-bold" onclick="confirmarExclusaoAno()">APAGAR ANO</button>
+                    <button class="btn btn-light btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -202,30 +350,28 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalExcluirCliente" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content text-center p-4">
-                <div class="mb-3"><div class="bg-light rounded-circle d-inline-flex p-3"><i class="bi bi-trash-fill text-danger fs-1"></i></div></div>
-                <h5 class="fw-bold text-dark mb-2">Tem certeza?</h5>
-                <p class="small text-muted mb-4">Você vai apagar este cliente e todo o histórico.</p>
-                <input type="hidden" id="idExclusao">
-                <div class="d-grid gap-2">
-                    <button class="btn btn-danger fw-bold" onclick="confirmarExclusaoCliente()">SIM, APAGAR</button>
-                    <button class="btn btn-light btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="modalBaixa" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header bg-light"><h6 class="modal-title fw-bold">Confirmar Pagamento</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <input type="hidden" id="baixaId">
+                    <input type="hidden" id="baixaValorOriginal">
                     <p class="text-center text-muted small mb-3" id="baixaTitulo">Referente a Janeiro/2026</p>
                     <div class="mb-3"><label class="small fw-bold text-success">DATA DO PAGAMENTO</label><input type="date" id="baixaData" class="form-control border-success"></div>
-                    <div class="mb-3"><label class="small fw-bold text-primary">VALOR RECEBIDO (R$)</label><input type="text" id="baixaValor" class="form-control fw-bold text-primary fs-5 text-center" oninput="mascaraMoeda(this)"><small class="text-muted" style="font-size: 0.75rem;">*Edite se houve juros ou desconto.</small></div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-contec">VALOR RECEBIDO (R$)</label>
+                        <input type="text" id="baixaValor" class="form-control fw-bold text-contec fs-5 text-center" oninput="mascaraMoeda(this); verificarParcial();">
+                    </div>
+                    <div class="mb-3 d-none bg-warning bg-opacity-10 p-2 rounded border border-warning" id="divSaldo">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="checkGerarSaldo" checked>
+                            <label class="form-check-label small fw-bold text-dark" for="checkGerarSaldo">
+                                Gerar nova cobrança do saldo? <br>
+                                <span class="text-danger">Faltam R$ <span id="txtSaldoRestante">0,00</span></span>
+                            </label>
+                        </div>
+                    </div>
                     <button class="btn btn-success w-100 fw-bold py-2" onclick="confirmarBaixa()">CONFIRMAR RECEBIMENTO</button>
                     <button class="btn btn-outline-danger w-100 mt-2 btn-sm" onclick="estornarBaixa()">Estornar (Marcar como Pendente)</button>
                 </div>
@@ -260,15 +406,25 @@
         let USER = null;
         let CLIENTE_ATUAL = null;
         let UNSUBSCRIBE_CLIENTES = null;
-        const SENHA_MESTRA = "Contec1801@";
+        let ANO_EXCLUSAO = null;
+        
+        let TODOS_CLIENTES = [];
+        let TODAS_FATURAS = [];
 
-        // LOGIN
+        const SENHA_MESTRA = "Contec1801@";
+        const SENHA_EXCLUSAO = "1234";
+
+        window.mostrarAviso = (texto) => {
+            document.getElementById('textoAviso').innerText = texto;
+            new bootstrap.Modal(document.getElementById('modalAviso')).show();
+        };
+
         onAuthStateChanged(auth, (user) => {
             if(user){
                 USER = user;
                 document.getElementById('telaLogin').classList.add('d-none');
                 document.getElementById('appSistema').classList.remove('d-none');
-                iniciarEscutaClientes();
+                iniciarEscutaGlobal(); 
             } else {
                 USER = null;
                 document.getElementById('telaLogin').classList.remove('d-none');
@@ -285,7 +441,6 @@
 
         window.fazerLogout = () => signOut(auth);
 
-        // ADMIN
         window.abrirModalAdmin = () => {
             document.getElementById("inputSenhaAdmin").value = "";
             document.getElementById("msgErroAdmin").style.display = "none";
@@ -298,39 +453,36 @@
                 bootstrap.Modal.getInstance(document.getElementById('modalAdminCheck')).hide();
                 const email = document.getElementById("emailLogin").value;
                 const senha = document.getElementById("senhaLogin").value;
-                if(!email || !senha) {
-                    const msg = document.getElementById("msgLogin");
-                    msg.innerText = "⚠️ Autorizado! Preencha E-mail e Senha e clique em Criar Conta novamente.";
-                    msg.className = "mt-3 text-center text-warning fw-bold small";
-                    return;
-                }
+                if(!email || !senha) { mostrarAviso("Preencha E-mail e Senha na tela de login e clique em 'Criar conta' novamente."); return; }
                 try {
                     await createUserWithEmailAndPassword(auth, email, senha);
-                    alert("✅ Conta criada com sucesso!");
-                } catch (error) { alert("Erro: " + error.message); }
-            } else {
-                document.getElementById("msgErroAdmin").style.display = "block";
-            }
+                    mostrarAviso("Conta criada com sucesso! Faça login.");
+                } catch (error) { mostrarAviso("Erro: " + error.message); }
+            } else { document.getElementById("msgErroAdmin").style.display = "block"; }
         };
 
         window.recuperarSenha = async () => {
             const email = document.getElementById("emailLogin").value;
-            if(!email) return alert("Digite seu e-mail no campo acima.");
-            try { await sendPasswordResetEmail(auth, email); alert("E-mail enviado!"); } catch (e) { alert("Erro: " + e.message); }
+            if(!email) return mostrarAviso("Digite seu e-mail no campo de login.");
+            try { await sendPasswordResetEmail(auth, email); mostrarAviso("E-mail de recuperação enviado para: " + email); } 
+            catch (e) { mostrarAviso("Erro: " + e.message); }
         };
 
-        // CLIENTES
-        function iniciarEscutaClientes() {
+        async function iniciarEscutaGlobal() {
             if(!USER) return;
-            const q = query(collection(db, "clientes_honorarios"), where("dono", "==", USER.uid));
-            UNSUBSCRIBE_CLIENTES = onSnapshot(q, (snap) => {
+            
+            const qC = query(collection(db, "clientes_honorarios"), where("dono", "==", USER.uid));
+            UNSUBSCRIBE_CLIENTES = onSnapshot(qC, (snap) => {
+                TODOS_CLIENTES = [];
                 const div = document.getElementById('listaClientes');
                 div.innerHTML = "";
-                if (snap.empty) { div.innerHTML = "<div class='text-center text-muted p-4'>Nenhum cliente cadastrado.</div>"; return; }
-                let lista = [];
-                snap.forEach(d => lista.push({id: d.id, ...d.data()}));
-                lista.sort((a, b) => a.nome.localeCompare(b.nome));
-                lista.forEach(c => {
+                
+                snap.forEach(d => TODOS_CLIENTES.push({id: d.id, ...d.data()}));
+                TODOS_CLIENTES.sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                if (snap.empty) div.innerHTML = "<div class='text-center text-muted p-4'>Nenhum cliente cadastrado.</div>";
+                
+                TODOS_CLIENTES.forEach(c => {
                     const json = JSON.stringify(c).replace(/"/g, '&quot;');
                     div.innerHTML += `
                         <div class="col-md-6 item-cliente-lista"> 
@@ -348,7 +500,66 @@
                             </div>
                         </div>`;
                 });
+                renderizarDashboard(); 
             });
+
+            const qF = query(collection(db, "faturas_honorarios"), where("dono", "==", USER.uid));
+            onSnapshot(qF, (snap) => {
+                TODAS_FATURAS = [];
+                snap.forEach(d => TODAS_FATURAS.push(d.data()));
+                renderizarDashboard();
+            });
+        }
+
+        window.alternarDashboard = () => {
+            const telaDash = document.getElementById('telaDashboard');
+            const telaCli = document.getElementById('telaClientes');
+            const telaDet = document.getElementById('telaDetalhes');
+            
+            if (telaDash.classList.contains('d-none')) {
+                telaDash.classList.remove('d-none');
+                telaCli.classList.add('d-none');
+                telaDet.classList.add('d-none');
+                document.getElementById('fabCobranca').classList.add('d-none');
+                renderizarDashboard();
+            } else {
+                telaDash.classList.add('d-none');
+                telaCli.classList.remove('d-none');
+            }
+        };
+
+        function renderizarDashboard() {
+            const hoje = new Date();
+            const mesAtual = (hoje.getMonth() + 1).toString().padStart(2, '0');
+            const anoAtual = hoje.getFullYear().toString();
+            const dataHojeStr = hoje.toISOString().split('T')[0];
+
+            let totalAtraso = 0;
+            let aReceberMes = 0;
+            let recebidoMes = 0;
+
+            TODAS_FATURAS.forEach(f => {
+                const vencParts = f.dataVencimento.split('-'); 
+                const mesVenc = vencParts[1];
+                const anoVenc = vencParts[0];
+
+                if (!f.pago && f.dataVencimento < dataHojeStr) {
+                    totalAtraso += parseFloat(f.valor);
+                }
+
+                if (mesVenc === mesAtual && anoVenc === anoAtual) {
+                    if (f.pago) {
+                        recebidoMes += parseFloat(f.valor);
+                    } else {
+                        aReceberMes += parseFloat(f.valor);
+                    }
+                }
+            });
+
+            document.getElementById('dashQtdClientes').innerText = TODOS_CLIENTES.length;
+            document.getElementById('dashTotalAtraso').innerText = totalAtraso.toLocaleString('pt-br', {minimumFractionDigits: 2});
+            document.getElementById('dashMesAberta').innerText = aReceberMes.toLocaleString('pt-br', {minimumFractionDigits: 2});
+            document.getElementById('dashMesPago').innerText = recebidoMes.toLocaleString('pt-br', {minimumFractionDigits: 2});
         }
 
         window.modalNovoCliente = () => {
@@ -371,11 +582,11 @@
         };
 
         window.salvarCliente = async () => {
-            if(!USER) { alert("Sessão expirou."); return; }
+            if(!USER) { mostrarAviso("Sessão expirou."); return; }
             const id = document.getElementById('idClienteEdicao').value;
             const nome = document.getElementById('inputNome').value;
             const val = parseFloat(document.getElementById('inputValor').value.replace('R$', '').trim().replaceAll('.', '').replace(',', '.'));
-            if(!nome || isNaN(val)) { alert("Verifique os dados."); return; }
+            if(!nome || isNaN(val)) { mostrarAviso("Verifique os dados."); return; }
             const dados = {
                 dono: USER.uid, nome: nome.toUpperCase(), cnpj: document.getElementById('inputCnpj').value,
                 diaVencimento: parseInt(document.getElementById('inputDia').value), valorMensal: val, telefone: document.getElementById('inputTel').value
@@ -384,18 +595,74 @@
                 if(id) await updateDoc(doc(db, "clientes_honorarios", id), dados);
                 else await addDoc(collection(db, "clientes_honorarios"), dados);
                 bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
-            } catch (e) { alert("Erro: " + e.message); }
+            } catch (e) { mostrarAviso("Erro: " + e.message); }
         };
 
         window.prepararExclusao = (id) => {
             document.getElementById('idExclusao').value = id;
+            document.getElementById('senhaExclusaoCliente').value = "";
+            document.getElementById('msgErroExclCli').classList.add('d-none');
             new bootstrap.Modal(document.getElementById('modalExcluirCliente')).show();
-        };
-        window.confirmarExclusaoCliente = async () => {
-            try { await deleteDoc(doc(db, "clientes_honorarios", document.getElementById('idExclusao').value)); bootstrap.Modal.getInstance(document.getElementById('modalExcluirCliente')).hide(); } catch(e){ alert("Erro: "+e.message); }
+            setTimeout(() => document.getElementById("senhaExclusaoCliente").focus(), 500);
         };
 
-        // DETALHES, COBRANÇA EM LOTE E FATURAS
+        window.confirmarExclusaoCliente = async () => {
+            const senha = document.getElementById('senhaExclusaoCliente').value;
+            if(senha !== SENHA_EXCLUSAO) { document.getElementById('msgErroExclCli').classList.remove('d-none'); return; }
+            const idCliente = document.getElementById('idExclusao').value;
+            try {
+                await deleteDoc(doc(db, "clientes_honorarios", idCliente));
+                const q = query(collection(db, "faturas_honorarios"), where("clienteId", "==", idCliente));
+                const snap = await getDocs(q);
+                const deletePromises = snap.docs.map(d => deleteDoc(doc(db, "faturas_honorarios", d.id)));
+                await Promise.all(deletePromises);
+                bootstrap.Modal.getInstance(document.getElementById('modalExcluirCliente')).hide();
+            } catch(e){ mostrarAviso("Erro: "+e.message); }
+        };
+
+        window.prepararExclusaoCarne = () => {
+            document.getElementById('senhaExclusaoCarne').value = "";
+            document.getElementById('msgErroExclCarne').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('modalExcluirCarne')).show();
+            setTimeout(() => document.getElementById("senhaExclusaoCarne").focus(), 500);
+        }
+
+        window.confirmarExclusaoCarne = async () => {
+            const senha = document.getElementById('senhaExclusaoCarne').value;
+            if(senha !== SENHA_EXCLUSAO) { document.getElementById('msgErroExclCarne').classList.remove('d-none'); return; }
+            if(!CLIENTE_ATUAL) return;
+            try {
+                const q = query(collection(db, "faturas_honorarios"), where("clienteId", "==", CLIENTE_ATUAL.id));
+                const snap = await getDocs(q);
+                const deletePromises = snap.docs.map(d => deleteDoc(doc(db, "faturas_honorarios", d.id)));
+                await Promise.all(deletePromises);
+                bootstrap.Modal.getInstance(document.getElementById('modalExcluirCarne')).hide();
+            } catch(e) { mostrarAviso("Erro: " + e.message); }
+        }
+
+        window.prepararExclusaoAno = (ano) => {
+            ANO_EXCLUSAO = ano;
+            document.getElementById('spanAnoExclusao').innerText = ano;
+            document.getElementById('senhaExclusaoAno').value = "";
+            document.getElementById('msgErroExclAno').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('modalExcluirAno')).show();
+            setTimeout(() => document.getElementById("senhaExclusaoAno").focus(), 500);
+        }
+
+        window.confirmarExclusaoAno = async () => {
+            const senha = document.getElementById('senhaExclusaoAno').value;
+            if(senha !== SENHA_EXCLUSAO) { document.getElementById('msgErroExclAno').classList.remove('d-none'); return; }
+            if(!CLIENTE_ATUAL || !ANO_EXCLUSAO) return;
+            try {
+                const q = query(collection(db, "faturas_honorarios"), where("clienteId", "==", CLIENTE_ATUAL.id));
+                const snap = await getDocs(q);
+                const faturasDoAno = snap.docs.filter(d => d.data().dataVencimento.startsWith(ANO_EXCLUSAO));
+                const deletePromises = faturasDoAno.map(d => deleteDoc(doc(db, "faturas_honorarios", d.id)));
+                await Promise.all(deletePromises);
+                bootstrap.Modal.getInstance(document.getElementById('modalExcluirAno')).hide();
+            } catch(e) { mostrarAviso("Erro: " + e.message); }
+        }
+
         window.abrirDetalhes = async (id) => {
             const docSnap = await getDoc(doc(db, "clientes_honorarios", id));
             if(!docSnap.exists()) return;
@@ -406,7 +673,6 @@
             document.getElementById('detalheValor').innerText = parseFloat(CLIENTE_ATUAL.valorMensal).toLocaleString('pt-br', {minimumFractionDigits: 2});
             document.getElementById('telaClientes').classList.add('d-none');
             document.getElementById('telaDetalhes').classList.remove('d-none');
-            // Esconde botão flutuante ao abrir
             document.getElementById('fabCobranca').classList.add('d-none');
             iniciarEscutaFaturas(id);
         };
@@ -414,102 +680,128 @@
         window.voltarParaClientes = () => {
             document.getElementById('telaClientes').classList.remove('d-none');
             document.getElementById('telaDetalhes').classList.add('d-none');
-            document.getElementById('fabCobranca').classList.add('d-none'); // Garante que some
+            document.getElementById('fabCobranca').classList.add('d-none'); 
             CLIENTE_ATUAL = null;
         };
 
         function iniciarEscutaFaturas(clienteId){
             const q = query(collection(db, "faturas_honorarios"), where("clienteId", "==", clienteId));
             onSnapshot(q, (snap) => {
-                const div = document.getElementById('listaMensalidades');
+                const div = document.getElementById('accordionAnos');
+                const abertoAgora = document.querySelector('.accordion-collapse.show');
+                const idAberto = abertoAgora ? abertoAgora.id : null; 
+
                 div.innerHTML = "";
+                
                 if(snap.empty) { div.innerHTML = "<div class='p-4 text-center text-muted'>Nenhuma fatura.<br>Clique em 'Gerar Carnê'.</div>"; return; }
-                
-                let lista = [];
-                snap.forEach(d => lista.push({id: d.id, ...d.data()}));
-                lista.sort((a, b) => a.dataVencimento.localeCompare(b.dataVencimento));
-                
-                lista.forEach(f => {
-                    const venc = f.dataVencimento.split('-'); 
-                    const dataBr = `${venc[2]}/${venc[1]}/${venc[0]}`;
-                    const valorFmt = parseFloat(f.valor).toLocaleString('pt-br', {minimumFractionDigits: 2});
+                const faturasPorAno = {};
+                snap.forEach(d => {
+                    const f = {id: d.id, ...d.data()};
+                    const ano = f.dataVencimento.split('-')[0];
+                    if(!faturasPorAno[ano]) faturasPorAno[ano] = [];
+                    faturasPorAno[ano].push(f);
+                });
+                const anosOrdenados = Object.keys(faturasPorAno).sort((a, b) => b - a);
+                anosOrdenados.forEach((ano, index) => {
+                    let isOpen = false;
+                    if (idAberto) { isOpen = (idAberto === `collapse${ano}`); } 
+                    else { isOpen = (index === 0); }
+
+                    const showClass = isOpen ? "show" : "";
+                    const collapsedClass = isOpen ? "" : "collapsed";
+
+                    const faturasDoAno = faturasPorAno[ano].sort((a, b) => a.dataVencimento.localeCompare(b.dataVencimento));
                     
-                    let htmlCheck = '';
-                    let classeStatus = f.pago ? "status-pago" : "status-pendente";
-                    let textoStatus = f.pago ? `<span class="badge bg-success">PAGO EM ${f.dataPagamentoFormatada}</span>` : `<span class="badge bg-danger">PENDENTE</span>`;
-                    let estiloTexto = f.pago ? "texto-pago" : "text-dark fw-bold";
-                    const msgZap = `Olá ${CLIENTE_ATUAL.nome}, honorários ref. ${f.mesReferencia} (Venc: ${dataBr}) no valor de R$ ${valorFmt} estão em aberto. Gentileza regularizar.`;
-                    const linkZap = `https://wa.me/55${(CLIENTE_ATUAL.telefone || "").replace(/\D/g,'')}?text=${encodeURIComponent(msgZap)}`;
-
-                    // Checkbox SÓ aparece se estiver pendente
-                    if(!f.pago) {
-                        htmlCheck = `<div class="me-3"><input class="form-check-input check-cobranca" type="checkbox" data-mes="${f.mesReferencia}" data-valor="${f.valor}" onchange="atualizarBotaoCobranca()"></div>`;
-                    }
-
+                    let htmlFaturas = "";
+                    faturasDoAno.forEach(f => {
+                        const venc = f.dataVencimento.split('-'); 
+                        const dataBr = `${venc[2]}/${venc[1]}/${venc[0]}`;
+                        const valorFmt = parseFloat(f.valor).toLocaleString('pt-br', {minimumFractionDigits: 2});
+                        let htmlCheck = '';
+                        let classeStatus = f.pago ? "status-pago" : "status-pendente";
+                        let textoStatus = f.pago ? `<span class="badge bg-success">PAGO EM ${f.dataPagamentoFormatada}</span>` : `<span class="badge bg-danger">PENDENTE</span>`;
+                        let estiloTexto = f.pago ? "texto-pago" : "text-dark fw-bold";
+                        const msgZap = `Olá ${CLIENTE_ATUAL.nome}, honorários ref. ${f.mesReferencia} (Venc: ${dataBr}) no valor de R$ ${valorFmt} estão em aberto. Gentileza regularizar.`;
+                        const linkZap = `https://wa.me/55${(CLIENTE_ATUAL.telefone || "").replace(/\D/g,'')}?text=${encodeURIComponent(msgZap)}`;
+                        if(!f.pago) { htmlCheck = `<div class="me-3"><input class="form-check-input check-cobranca" type="checkbox" data-mes="${f.mesReferencia}" data-valor="${f.valor}" onchange="atualizarBotaoCobranca()"></div>`; }
+                        htmlFaturas += `
+                            <div class="item-mes d-flex align-items-center ${classeStatus}">
+                                ${htmlCheck}
+                                <div style="cursor: pointer; flex-grow: 1;" onclick="abrirBaixa('${f.id}', '${f.mesReferencia}', ${f.valor}, '${f.dataPagamento || ''}')">
+                                    <div class="small text-muted fw-bold text-uppercase">${f.mesReferencia}</div>
+                                    <div class="${estiloTexto}">R$ ${valorFmt}</div>
+                                    <small class="text-muted" style="font-size: 0.75rem">Vence: ${dataBr}</small>
+                                    <div class="mt-1">${textoStatus}</div>
+                                </div>
+                                <div><a href="${linkZap}" target="_blank" class="btn btn-sm text-white rounded-circle shadow-sm" style="background-color: var(--whatsapp)"><i class="bi bi-whatsapp"></i></a></div>
+                            </div>`;
+                    });
                     div.innerHTML += `
-                        <div class="item-mes d-flex align-items-center ${classeStatus}">
-                            ${htmlCheck}
-                            <div style="cursor: pointer; flex-grow: 1;" onclick="abrirBaixa('${f.id}', '${f.mesReferencia}', ${f.valor}, '${f.dataPagamento || ''}')">
-                                <div class="small text-muted fw-bold text-uppercase">${f.mesReferencia}</div>
-                                <div class="${estiloTexto}">R$ ${valorFmt}</div>
-                                <small class="text-muted" style="font-size: 0.75rem">Vence: ${dataBr}</small>
-                                <div class="mt-1">${textoStatus}</div>
+                        <div class="accordion-item border-0 mb-2 shadow-sm">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button ${collapsedClass}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${ano}">
+                                    <i class="bi bi-calendar-event me-2"></i> ${ano}
+                                </button>
+                            </h2>
+                            <div id="collapse${ano}" class="accordion-collapse collapse ${showClass}" data-bs-parent="#accordionAnos">
+                                <div class="accordion-body p-0">
+                                    <div class="p-2 text-end bg-light border-bottom">
+                                        <button class="btn btn-outline-danger btn-sm" onclick="prepararExclusaoAno('${ano}')">
+                                            <i class="bi bi-trash"></i> Excluir Ano ${ano}
+                                        </button>
+                                    </div>
+                                    ${htmlFaturas}
+                                </div>
                             </div>
-                            <div>
-                                <a href="${linkZap}" target="_blank" class="btn btn-sm text-white rounded-circle shadow-sm" style="background-color: var(--whatsapp)"><i class="bi bi-whatsapp"></i></a>
-                            </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
             });
         }
 
-        // LÓGICA DE COBRANÇA EM LOTE
         window.atualizarBotaoCobranca = () => {
             const checks = document.querySelectorAll('.check-cobranca:checked');
             const fab = document.getElementById('fabCobranca');
-            
             if(checks.length > 0) {
                 fab.classList.remove('d-none');
                 let total = 0;
                 checks.forEach(c => total += parseFloat(c.getAttribute('data-valor')));
                 document.getElementById('fabQtd').innerText = checks.length;
                 document.getElementById('fabTotal').innerText = total.toLocaleString('pt-br', {minimumFractionDigits: 2});
-            } else {
-                fab.classList.add('d-none');
-            }
+            } else { fab.classList.add('d-none'); }
         };
 
         window.enviarCobrancaLote = () => {
             const checks = document.querySelectorAll('.check-cobranca:checked');
             let meses = [];
             let total = 0;
-            
-            checks.forEach(c => {
-                meses.push(c.getAttribute('data-mes'));
-                total += parseFloat(c.getAttribute('data-valor'));
-            });
-
+            checks.forEach(c => { meses.push(c.getAttribute('data-mes')); total += parseFloat(c.getAttribute('data-valor')); });
             const totalFmt = total.toLocaleString('pt-br', {minimumFractionDigits: 2});
             const listaMeses = meses.join(', ');
-            
-            // Frase solicitada
             const msg = `Olá ${CLIENTE_ATUAL.nome}, honorários referentes a: ${listaMeses} estão em atraso.\nTotal: R$ ${totalFmt}.\nGentileza regularizar.`;
-            
             const link = `https://wa.me/55${(CLIENTE_ATUAL.telefone || "").replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
             window.open(link, '_blank');
         };
 
-        window.modalGerarAno = async () => {
-            if(!confirm(`Gerar mensalidades de Jan a Dez para ${CLIENTE_ATUAL.nome}?`)) return;
-            const ano = prompt("Digite o Ano:", "2026");
+        window.prepararGeracaoCarne = () => {
+            document.getElementById('inputAnoCarne').value = new Date().getFullYear();
+            new bootstrap.Modal(document.getElementById('modalGerarCarne')).show();
+        };
+
+        window.confirmarGeracaoAno = async () => {
+            const ano = parseInt(document.getElementById('inputAnoCarne').value);
             if(!ano) return;
+            bootstrap.Modal.getInstance(document.getElementById('modalGerarCarne')).hide();
             const promises = [];
             for(let i=0; i<12; i++){
-                let mes = i+1; let mesStr = mes < 10 ? `0${mes}` : mes;
-                let dataVenc = `${ano}-${mesStr}-${CLIENTE_ATUAL.diaVencimento.toString().padStart(2, '0')}`;
+                let dataCompObj = new Date(ano, i - 1, 1); 
+                let mesComp = dataCompObj.getMonth() + 1;
+                let anoComp = dataCompObj.getFullYear();
+                let mesCompStr = mesComp < 10 ? `0${mesComp}` : mesComp;
+                let mesVenc = i + 1;
+                let mesVencStr = mesVenc < 10 ? `0${mesVenc}` : mesVenc;
+                let dataVencStr = `${ano}-${mesVencStr}-${CLIENTE_ATUAL.diaVencimento.toString().padStart(2, '0')}`;
                 promises.push(addDoc(collection(db, "faturas_honorarios"), {
-                    clienteId: CLIENTE_ATUAL.id, mesReferencia: `${mesStr}/${ano}`, dataVencimento: dataVenc, valor: CLIENTE_ATUAL.valorMensal, pago: false, dono: USER.uid
+                    clienteId: CLIENTE_ATUAL.id, mesReferencia: `${mesCompStr}/${anoComp}`, dataVencimento: dataVencStr, valor: CLIENTE_ATUAL.valorMensal, pago: false, dono: USER.uid
                 }));
             }
             await Promise.all(promises);
@@ -519,10 +811,38 @@
             document.getElementById('baixaId').value = id;
             document.getElementById('baixaTitulo').innerText = `Referência: ${ref}`;
             document.getElementById('baixaData').value = dataPag || new Date().toISOString().split('T')[0];
+            document.getElementById('baixaValorOriginal').value = valor;
             const inputVal = document.getElementById('baixaValor');
             inputVal.value = parseFloat(valor).toLocaleString('pt-br', {minimumFractionDigits: 2});
             mascaraMoeda(inputVal); 
+            document.getElementById('divSaldo').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('modalBackup')).show(); // Ops, aqui estava chamando backup errado, vou corrigir
+        };
+        // CORREÇÃO: Função abrirBaixa chamando o modal certo
+        window.abrirBaixa = (id, ref, valor, dataPag) => {
+            document.getElementById('baixaId').value = id;
+            document.getElementById('baixaTitulo').innerText = `Referência: ${ref}`;
+            document.getElementById('baixaData').value = dataPag || new Date().toISOString().split('T')[0];
+            document.getElementById('baixaValorOriginal').value = valor;
+            const inputVal = document.getElementById('baixaValor');
+            inputVal.value = parseFloat(valor).toLocaleString('pt-br', {minimumFractionDigits: 2});
+            mascaraMoeda(inputVal); 
+            document.getElementById('divSaldo').classList.add('d-none');
             new bootstrap.Modal(document.getElementById('modalBaixa')).show();
+        };
+
+        window.abrirModalBackup = () => {
+            new bootstrap.Modal(document.getElementById('modalBackup')).show();
+        };
+
+        window.verificarParcial = () => {
+            const vOriginal = parseFloat(document.getElementById('baixaValorOriginal').value);
+            const vPago = parseFloat(document.getElementById('baixaValor').value.replace('.','').replace(',','.'));
+            if(vPago < vOriginal && vPago > 0) {
+                const resto = vOriginal - vPago;
+                document.getElementById('txtSaldoRestante').innerText = resto.toLocaleString('pt-br', {minimumFractionDigits: 2});
+                document.getElementById('divSaldo').classList.remove('d-none');
+            } else { document.getElementById('divSaldo').classList.add('d-none'); }
         };
 
         window.confirmarBaixa = async () => {
@@ -530,8 +850,21 @@
             const dataPag = document.getElementById('baixaData').value;
             const partes = dataPag.split('-');
             const dataPagFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-            const valorFinal = parseFloat(document.getElementById('baixaValor').value.replace('.','').replace(',','.'));
-            await updateDoc(doc(db, "faturas_honorarios", id), { pago: true, dataPagamento: dataPag, dataPagamentoFormatada: dataPagFormatada, valor: valorFinal });
+            const vPago = parseFloat(document.getElementById('baixaValor').value.replace('.','').replace(',','.'));
+            const vOriginal = parseFloat(document.getElementById('baixaValorOriginal').value);
+            const gerarSaldo = document.getElementById('checkGerarSaldo').checked;
+            const temSaldo = !document.getElementById('divSaldo').classList.contains('d-none');
+
+            await updateDoc(doc(db, "faturas_honorarios", id), { pago: true, dataPagamento: dataPag, dataPagamentoFormatada: dataPagFormatada, valor: vPago });
+
+            if(temSaldo && gerarSaldo) {
+                const resto = vOriginal - vPago;
+                const docSnap = await getDoc(doc(db, "faturas_honorarios", id));
+                const dadosOrig = docSnap.data();
+                await addDoc(collection(db, "faturas_honorarios"), {
+                    clienteId: dadosOrig.clienteId, mesReferencia: dadosOrig.mesReferencia + " (Saldo)", dataVencimento: dadosOrig.dataVencimento, valor: resto, pago: false, dono: USER.uid
+                });
+            }
             bootstrap.Modal.getInstance(document.getElementById('modalBaixa')).hide();
         };
 
@@ -542,18 +875,35 @@
              bootstrap.Modal.getInstance(document.getElementById('modalBaixa')).hide();
         }
 
-        window.baixarBackup = async () => {
-            if(!confirm("Deseja baixar o backup de Clientes e Honorários em CSV?")) return;
+        // --- BACKUP MELHORADO (RELATÓRIO PLANO) ---
+        window.executarDownloadBackup = async () => {
+            bootstrap.Modal.getInstance(document.getElementById('modalBackup')).hide();
+            
             const qC = query(collection(db, "clientes_honorarios"), where("dono", "==", USER.uid));
-            const qF = query(collection(db, "faturas_honorarios"), where("dono", "==", USER.uid));
-            const [snapC, snapF] = await Promise.all([getDocs(qC), getDocs(qF)]);
-            let csv = "TIPO;NOME;CNPJ;VENCIMENTO;REFERENCIA;VALOR;STATUS;DATA_PAGAMENTO\n";
+            const snapC = await getDocs(qC);
             const clientesMap = {};
-            snapC.forEach(d => { const c = d.data(); clientesMap[d.id] = c.nome; csv += `CLIENTE;${c.nome};${c.cnpj || ''};${c.diaVencimento};-;${c.valorMensal};ATIVO;-\n`; });
-            snapF.forEach(d => { const f = d.data(); const nomeCliente = clientesMap[f.clienteId] || "Desconhecido"; const status = f.pago ? "PAGO" : "PENDENTE"; csv += `FATURA;${nomeCliente};-;${f.dataVencimento};${f.mesReferencia};${f.valor};${status};${f.dataPagamento || '-'}\n`; });
-            const blob = new Blob([csv], { type: 'text/csv' });
+            snapC.forEach(d => {
+                const c = d.data();
+                clientesMap[d.id] = { nome: c.nome, cnpj: c.cnpj || '', tel: c.telefone || '' };
+            });
+
+            const qF = query(collection(db, "faturas_honorarios"), where("dono", "==", USER.uid));
+            const snapF = await getDocs(qF);
+
+            let csv = "\uFEFFCLIENTE;CNPJ;TELEFONE;REFERENCIA;VENCIMENTO;VALOR;STATUS;DATA_PAGAMENTO\n";
+            
+            snapF.forEach(d => {
+                const f = d.data();
+                const cli = clientesMap[f.clienteId] || { nome: "DESCONHECIDO", cnpj: "-", tel: "-" };
+                const status = f.pago ? "PAGO" : "PENDENTE";
+                const valor = parseFloat(f.valor).toLocaleString('pt-br', {minimumFractionDigits: 2});
+                
+                csv += `${cli.nome};${cli.cnpj};${cli.tel};${f.mesReferencia};${f.dataVencimento};${valor};${status};${f.dataPagamento || '-'}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `backup_honorarios_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+            const a = document.createElement('a'); a.href = url; a.download = `relatorio_honorarios_${new Date().toISOString().split('T')[0]}.csv`; a.click();
         };
 
         window.mascaraMoeda = (i) => {
