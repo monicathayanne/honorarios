@@ -468,47 +468,90 @@
             catch (e) { mostrarAviso("Erro: " + e.message); }
         };
 
+        // ======================================================
+        // NOVA LÓGICA DE ESCUTA E RENDERIZAÇÃO COM STATUS
+        // ======================================================
+
         async function iniciarEscutaGlobal() {
             if(!USER) return;
             
+            // 1. Escuta Clientes
             const qC = query(collection(db, "clientes_honorarios"), where("dono", "==", USER.uid));
             UNSUBSCRIBE_CLIENTES = onSnapshot(qC, (snap) => {
                 TODOS_CLIENTES = [];
-                const div = document.getElementById('listaClientes');
-                div.innerHTML = "";
-                
                 snap.forEach(d => TODOS_CLIENTES.push({id: d.id, ...d.data()}));
                 TODOS_CLIENTES.sort((a, b) => a.nome.localeCompare(b.nome));
                 
-                if (snap.empty) div.innerHTML = "<div class='text-center text-muted p-4'>Nenhum cliente cadastrado.</div>";
-                
-                TODOS_CLIENTES.forEach(c => {
-                    const json = JSON.stringify(c).replace(/"/g, '&quot;');
-                    div.innerHTML += `
-                        <div class="col-md-6 item-cliente-lista"> 
-                            <div class="card card-cliente border-0 shadow-sm h-100" onclick="abrirDetalhes('${c.id}')">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="fw-bold text-uppercase mb-1" style="color: var(--contec-blue)">${c.nome}</h6>
-                                        <div class="small text-muted"><span class="d-block text-truncate" style="max-width: 150px;">${c.cnpj || ""}</span><span>Dia ${c.diaVencimento} • R$ ${parseFloat(c.valorMensal).toLocaleString('pt-br', {minimumFractionDigits: 2})}</span></div>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn-acao-card" onclick="event.stopPropagation(); preparingEdicao('${json}')"><i class="bi bi-pencil-fill"></i></button>
-                                        <button class="btn-acao-card delete" onclick="event.stopPropagation(); prepararExclusao('${c.id}')"><i class="bi bi-trash-fill"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
-                });
-                renderizarDashboard(); 
+                // Agora chamamos a função de renderizar separada
+                renderizarListaClientes(); 
             });
 
+            // 2. Escuta Faturas
             const qF = query(collection(db, "faturas_honorarios"), where("dono", "==", USER.uid));
             onSnapshot(qF, (snap) => {
                 TODAS_FATURAS = [];
                 snap.forEach(d => TODAS_FATURAS.push(d.data()));
-                renderizarDashboard();
+                
+                renderizarDashboard(); // Atualiza os números do topo
+                renderizarListaClientes(); // Atualiza a lista de clientes (para mudar a cor do status)
             });
+        }
+
+        // Função separada para desenhar os clientes na tela com o status
+        function renderizarListaClientes() {
+            const div = document.getElementById('listaClientes');
+            div.innerHTML = "";
+            
+            if (TODOS_CLIENTES.length === 0) {
+                div.innerHTML = "<div class='text-center text-muted p-4'>Nenhum cliente cadastrado.</div>";
+                return;
+            }
+
+            const hoje = new Date().toISOString().split('T')[0]; // Data de hoje formato YYYY-MM-DD
+
+            TODOS_CLIENTES.forEach(c => {
+                // LÓGICA DO STATUS
+                // Procura se tem alguma fatura deste cliente que não está paga e já venceu
+                const temAtraso = TODAS_FATURAS.some(f => 
+                    f.clienteId === c.id && 
+                    !f.pago && 
+                    f.dataVencimento < hoje
+                );
+
+                let htmlStatus = "";
+                if (temAtraso) {
+                    htmlStatus = `<span class="ms-2 small fw-bold text-danger border border-danger px-2 rounded" style="font-size: 0.7rem; vertical-align: middle;">Inadimplente</span>`;
+                } else {
+                    htmlStatus = `<span class="ms-2 small fw-bold text-success border border-success px-2 rounded" style="font-size: 0.7rem; vertical-align: middle;">Adimplente</span>`;
+                }
+
+                const json = JSON.stringify(c).replace(/"/g, '&quot;');
+                
+                div.innerHTML += `
+                    <div class="col-md-6 item-cliente-lista"> 
+                        <div class="card card-cliente border-0 shadow-sm h-100" onclick="abrirDetalhes('${c.id}')">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <h6 class="fw-bold text-uppercase m-0 text-truncate" style="color: var(--contec-blue); max-width: 180px;">${c.nome}</h6>
+                                        ${htmlStatus}
+                                    </div>
+                                    <div class="small text-muted">
+                                        <span class="d-block text-truncate" style="max-width: 200px;">${c.cnpj || ""}</span>
+                                        <span>Dia ${c.diaVencimento} • R$ ${parseFloat(c.valorMensal).toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn-acao-card" onclick="event.stopPropagation(); preparingEdicao('${json}')"><i class="bi bi-pencil-fill"></i></button>
+                                    <button class="btn-acao-card delete" onclick="event.stopPropagation(); prepararExclusao('${c.id}')"><i class="bi bi-trash-fill"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            
+            // Reaplica o filtro de busca se houver algo digitado
+            filtrarClientes();
         }
 
         window.alternarDashboard = () => {
