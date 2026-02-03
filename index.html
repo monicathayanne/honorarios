@@ -379,6 +379,46 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalSelecaoZap" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-whatsapp me-2"></i>Escolha a Mensagem</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="list-group list-group-flush">
+                        
+                        <button type="button" class="list-group-item list-group-item-action p-3" onclick="enviarZapTipo(1)">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-success">1. Cobrança Padrão</h6>
+                                <small class="text-muted">Primeiro aviso</small>
+                            </div>
+                            <p class="mb-1 small text-muted fst-italic">"Consta em aberto o honorário ref..."</p>
+                        </button>
+
+                        <button type="button" class="list-group-item list-group-item-action p-3" onclick="enviarZapTipo(2)">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-warning">2. Segunda Cobrança</h6>
+                                <small class="text-muted">Reforço</small>
+                            </div>
+                            <p class="mb-1 small text-muted fst-italic">"Reforçamos a cobrança do honorário..."</p>
+                        </button>
+
+                        <button type="button" class="list-group-item list-group-item-action p-3" onclick="enviarZapTipo(3)">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-danger">3. Cobrança Final</h6>
+                                <small class="text-muted">Último aviso</small>
+                            </div>
+                            <p class="mb-1 small text-muted fst-italic">"Solicitamos a regularização para evitar a suspensão..."</p>
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').then(() => console.log('App pronto!')); }
@@ -764,9 +804,14 @@
                         let classeStatus = f.pago ? "status-pago" : "status-pendente";
                         let textoStatus = f.pago ? `<span class="badge bg-success">PAGO EM ${f.dataPagamentoFormatada}</span>` : `<span class="badge bg-danger">PENDENTE</span>`;
                         let estiloTexto = f.pago ? "texto-pago" : "text-dark fw-bold";
-                        const msgZap = `Olá ${CLIENTE_ATUAL.nome}, honorários ref. ${f.mesReferencia} (Venc: ${dataBr}) no valor de R$ ${valorFmt} estão em aberto. Gentileza regularizar.`;
-                        const linkZap = `https://wa.me/55${(CLIENTE_ATUAL.telefone || "").replace(/\D/g,'')}?text=${encodeURIComponent(msgZap)}`;
-                        if(!f.pago) { htmlCheck = `<div class="me-3"><input class="form-check-input check-cobranca" type="checkbox" data-mes="${f.mesReferencia}" data-valor="${f.valor}" onchange="atualizarBotaoCobranca()"></div>`; }
+                        // Botão de check para cobrança em massa
+                        if(!f.pago) { 
+                            htmlCheck = `<div class="me-3"><input class="form-check-input check-cobranca" type="checkbox" data-mes="${f.mesReferencia}" data-valor="${f.valor}" onchange="atualizarBotaoCobranca()"></div>`; 
+                        }
+
+                        // Botão do WhatsApp (Agora chama a função abrirOpcoesZap)
+                        const btnZap = `<button onclick="abrirOpcoesZap('${f.mesReferencia}', '${dataBr}', '${valorFmt}')" class="btn btn-sm text-white rounded-circle shadow-sm border-0" style="background-color: var(--whatsapp)"><i class="bi bi-whatsapp"></i></button>`;
+
                         htmlFaturas += `
                             <div class="item-mes d-flex align-items-center ${classeStatus}">
                                 ${htmlCheck}
@@ -776,8 +821,11 @@
                                     <small class="text-muted" style="font-size: 0.75rem">Vence: ${dataBr}</small>
                                     <div class="mt-1">${textoStatus}</div>
                                 </div>
-                                <div><a href="${linkZap}" target="_blank" class="btn btn-sm text-white rounded-circle shadow-sm" style="background-color: var(--whatsapp)"><i class="bi bi-whatsapp"></i></a></div>
+                                <div>
+                                    ${btnZap}
+                                </div>
                             </div>`;
+                        
                     });
                     div.innerHTML += `
                         <div class="accordion-item border-0 mb-2 shadow-sm">
@@ -813,17 +861,89 @@
             } else { fab.classList.add('d-none'); }
         };
 
+        // Variável para guardar se é uma cobrança em lote
+        let IS_LOTE = false;
+
         window.enviarCobrancaLote = () => {
             const checks = document.querySelectorAll('.check-cobranca:checked');
+            if (checks.length === 0) return;
+
             let meses = [];
             let total = 0;
-            checks.forEach(c => { meses.push(c.getAttribute('data-mes')); total += parseFloat(c.getAttribute('data-valor')); });
+            
+            // Coleta os dados das caixinhas marcadas
+            checks.forEach(c => { 
+                meses.push(c.getAttribute('data-mes')); 
+                total += parseFloat(c.getAttribute('data-valor')); 
+            });
+
             const totalFmt = total.toLocaleString('pt-br', {minimumFractionDigits: 2});
             const listaMeses = meses.join(', ');
-            const msg = `Olá ${CLIENTE_ATUAL.nome}, honorários referentes a: ${listaMeses} estão em atraso.\nTotal: R$ ${totalFmt}.\nGentileza regularizar.`;
-            const link = `https://wa.me/55${(CLIENTE_ATUAL.telefone || "").replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
-            window.open(link, '_blank');
+
+            // Prepara o objeto global ZAP_DADOS com os dados do LOTE
+            ZAP_DADOS = {
+                nome: CLIENTE_ATUAL.nome,
+                tel: (CLIENTE_ATUAL.telefone || "").replace(/\D/g, ''),
+                mes: listaMeses, // Aqui vai a lista de meses (ex: "01/2026, 02/2026")
+                data: "datas variadas", // Texto genérico pois são várias datas
+                valor: totalFmt
+            };
+
+            // Marca que é lote para usarmos textos diferentes se quiser
+            IS_LOTE = true;
+
+            // Abre o modal de escolha (1, 2 ou 3)
+            new bootstrap.Modal(document.getElementById('modalSelecaoZap')).show();
         };
+
+
+        // --- LÓGICA DE COBRANÇA MÚLTIPLA ---
+        let ZAP_DADOS = {}; // Guarda os dados temporariamente
+
+        window.abrirOpcoesZap = (mes, dataVenc, valor) => {
+            IS_LOTE = false; // Garante que é cobrança individual
+            
+            ZAP_DADOS = {
+                nome: CLIENTE_ATUAL.nome,
+                tel: (CLIENTE_ATUAL.telefone || "").replace(/\D/g, ''),
+                mes: mes,
+                data: dataVenc,
+                valor: valor
+            };
+            
+            new bootstrap.Modal(document.getElementById('modalSelecaoZap')).show();
+        };
+
+
+       window.enviarZapTipo = (tipo) => {
+            if (!ZAP_DADOS.tel) {
+                mostrarAviso("Cliente sem telefone cadastrado.");
+                return;
+            }
+
+            let msg = "";
+            
+            // Texto adaptado para LOTE (plural) ou INDIVIDUAL (singular)
+            const termo = IS_LOTE ? "os honorários referentes a" : "o honorário ref.";
+            const termoVenc = IS_LOTE ? "" : `, com vencimento em *${ZAP_DADOS.data}*`;
+
+            // OPÇÃO 1: PADRÃO
+            if (tipo === 1) {
+                msg = `Olá ${ZAP_DADOS.nome}, tudo bem?\nConsta em aberto ${termo} *${ZAP_DADOS.mes}*${termoVenc}, no valor total de *R$ ${ZAP_DADOS.valor}*.\nGentileza verificar e regularizar.\nFicamos à disposição para qualquer dúvida.`;
+            }
+            // OPÇÃO 2: REFORÇO
+            else if (tipo === 2) {
+                msg = `Olá ${ZAP_DADOS.nome}, tudo bem?\nReforçamos a cobrança d${termo} *${ZAP_DADOS.mes}*, no valor de *R$ ${ZAP_DADOS.valor}*, que ainda consta em aberto.\nGentileza nos informar a previsão de pagamento. Obrigada.`;
+            }
+            // OPÇÃO 3: FINAL
+            else if (tipo === 3) {
+                msg = `Olá ${ZAP_DADOS.nome}.\nConsta pendência d${termo} *${ZAP_DADOS.mes}*, no valor de *R$ ${ZAP_DADOS.valor}*.\nSolicitamos a regularização para evitar a suspensão dos serviços.\nPermanecemos à disposição.`;
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('modalSelecaoZap')).hide();
+            window.open(`https://wa.me/55${ZAP_DADOS.tel}?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
 
         window.prepararGeracaoCarne = () => {
             document.getElementById('inputAnoCarne').value = new Date().getFullYear();
@@ -833,22 +953,48 @@
         window.confirmarGeracaoAno = async () => {
             const ano = parseInt(document.getElementById('inputAnoCarne').value);
             if(!ano) return;
+            
             bootstrap.Modal.getInstance(document.getElementById('modalGerarCarne')).hide();
+            
             const promises = [];
+            
             for(let i=0; i<12; i++){
+                // --- Lógica de datas ---
                 let dataCompObj = new Date(ano, i - 1, 1); 
                 let mesComp = dataCompObj.getMonth() + 1;
                 let anoComp = dataCompObj.getFullYear();
                 let mesCompStr = mesComp < 10 ? `0${mesComp}` : mesComp;
+                
+                let referencia = `${mesCompStr}/${anoComp}`;
                 let mesVenc = i + 1;
                 let mesVencStr = mesVenc < 10 ? `0${mesVenc}` : mesVenc;
                 let dataVencStr = `${ano}-${mesVencStr}-${CLIENTE_ATUAL.diaVencimento.toString().padStart(2, '0')}`;
-                promises.push(addDoc(collection(db, "faturas_honorarios"), {
-                    clienteId: CLIENTE_ATUAL.id, mesReferencia: `${mesCompStr}/${anoComp}`, dataVencimento: dataVencStr, valor: CLIENTE_ATUAL.valorMensal, pago: false, dono: USER.uid
-                }));
+                
+                // --- O SEGREDO ESTÁ AQUI EMBAIXO ---
+                
+                // Criamos um ID único. Exemplo: "abc123_01-2026"
+                // É impossível existirem dois documentos com esse mesmo ID.
+                const customId = `${CLIENTE_ATUAL.id}_${mesCompStr}-${anoComp}`;
+                
+                // Aponta para esse ID específico
+                const docRef = doc(db, "faturas_honorarios", customId);
+
+                // Usa setDoc com merge: true
+                // Tradução: "Se não existir, cria. Se já existir, atualiza."
+                promises.push(setDoc(docRef, {
+                    clienteId: CLIENTE_ATUAL.id, 
+                    mesReferencia: referencia, 
+                    dataVencimento: dataVencStr, 
+                    valor: CLIENTE_ATUAL.valorMensal, 
+                    pago: false, 
+                    dono: USER.uid
+                }, { merge: true }));
             }
+            
             await Promise.all(promises);
+            mostrarAviso(`Carnê de ${ano} gerado/atualizado com sucesso!`);
         };
+
 
         window.abrirBaixa = (id, ref, valor, dataPag) => {
             document.getElementById('baixaId').value = id;
